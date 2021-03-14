@@ -30,19 +30,28 @@ app.get("/newuser", function (req, res) {
 
       addressData = address
       var state = address.state
+      if(addressData = undefined){
+        req.send("got undifined")
+      }
 
-      console.log("====== Address ======" + `${addressData.state}`)
+      //console.log("====== Address ======" + `${addressData.state}`)
 
       fetchForestData(state,function(forest){
         
         forestData = forest
-        console.log("====== Forest ======" + `${forestData.geographical_area}`)
+        //console.log("====== Forest ======" + `${forestData.geographical_area}`)
 
+        if(forestData = undefined){
+          req.send("got undifined")
+        }
         fetchAirData(latitude,longitude, function(air){
         
           airData = air
-          console.log("====== Air ======" + `${airData .aqi}`)
-
+          //console.log("====== Air ======" + `${airData .aqi}`)
+          if(airData = undefined){
+            req.send("got undifined")
+          }
+          
           initiateParametes(function(targetTrees,normalizedScore){
             res.send({'targetTrees' :targetTrees,'normalizedScore':normalizedScore,'aqi':airData.aqi,'co':airData.co,'no2':airData.no2,'o3':airData.o3,'pm10':airData.pm10,'pm25':airData.pm25,'so2':airData.so2})
           })
