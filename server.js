@@ -4,9 +4,9 @@ const request = require('request')
 const http = require('http');
 //var firebase = require('firebase')
 const app = express()
-let addressData = undefined
+var addressData = undefined
 var airData = undefined
-let forestData = undefined
+var forestData = undefined
 let object = new Map()
 var revGeoCodingUrl = "http://apis.mapmyindia.com/advancedmaps/v1/pi3yb3qxy8obnmsrjwh9lm4gghx7xvwm/rev_geocode?"
 var revGeoCodingUrl2 = "https://us1.locationiq.com/v1/reverse.php?key=pk.6500b602741f3cbdb1214e8fb297041a&format=json&"
