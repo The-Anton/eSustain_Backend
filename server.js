@@ -7,7 +7,7 @@ var addressData = undefined
 var airData = undefined
 var forestData = undefined
 let object = new Map()
-var revGeoCodingUrl = "http://apis.mapmyindia.com/advancedmaps/v1/h27fdmxssx2dxlp369n6ncdc7ach1wui/rev_geocode?"
+var revGeoCodingUrl = "http://apis.mapmyindia.com/advancedmaps/v1/pi3yb3qxy8obnmsrjwh9lm4gghx7xvwm/rev_geocode?"
 var forestDataUrl = "https://api.data.gov.in/resource/4b573150-4b0e-4a38-9f4b-ae643de88f09?api-key=579b464db66ec23bdd00000157bc862d9f2146d84b764d388c4b7319&format=json&filters[states_uts]="
 var airDataUrl = "https://api.weatherbit.io/v2.0/current/airquality?key=fe3cc9eeea474df0af9999424550bdee&"
 var firebaseConfig = {
