@@ -9,7 +9,6 @@ var forestData = undefined
 let object = new Map()
 var revGeoCodingUrl = "http://apis.mapmyindia.com/advancedmaps/v1/pi3yb3qxy8obnmsrjwh9lm4gghx7xvwm/rev_geocode?"
 var revGeoCodingUrl2 = "https://us1.locationiq.com/v1/reverse.php?key=pk.6500b602741f3cbdb1214e8fb297041a&format=json&"
-
 var forestDataUrl = "https://api.data.gov.in/resource/4b573150-4b0e-4a38-9f4b-ae643de88f09?api-key=579b464db66ec23bdd00000157bc862d9f2146d84b764d388c4b7319&format=json&filters[states_uts]="
 var airDataUrl = "https://api.weatherbit.io/v2.0/current/airquality?key=fe3cc9eeea474df0af9999424550bdee&"
 
@@ -53,8 +52,8 @@ app.get("/newuser", function (req, res) {
           airData = air
           console.log("====== Air ======" + `${airData .aqi}`)
 
-          initiateParametes(function(object){
-              res.send(object)
+          initiateParametes(function(targetTrees,normalizedScore){
+            res.send({'targetTrees' :targetTrees,'normalizedScore':normalizedScore,'aqi':airData.aqi,'co':airData.co,'no2':airData.no2,'o3':airData.o3,'pm10':airData.pm10,'pm25':airData.pm25,'so2':airData.so2})
           })
 
         }) 
@@ -96,8 +95,8 @@ app.get("/newuser2", function (req, res) {
         airData = air
         console.log("====== Air ======" + `${airData .aqi}`)
 
-        initiateParametes(function(object){
-            res.send(object)
+        initiateParametes(function(targetTrees,normalizedScore){
+          res.send({'targetTrees' :targetTrees,'normalizedScore':normalizedScore,'aqi':airData.aqi,'co':airData.co,'no2':airData.no2,'o3':airData.o3,'pm10':airData.pm10,'pm25':airData.pm25,'so2':airData.so2})
         })
 
       }) 
@@ -114,6 +113,8 @@ app.get("/newuser2", function (req, res) {
   // writeNewUserFirebase(user)
 })
 
+
+
 function fetchAddressData(latitude,longitude,callback){
   
   revGeoCodingUrl+= "lat="+latitude + "&lng=" + longitude
@@ -127,6 +128,7 @@ function fetchAddressData(latitude,longitude,callback){
   });
 
 }
+
 function fetchAddressData2(latitude,longitude,callback){
   
   revGeoCodingUrl2 += "lat="+latitude + "&lon=" + longitude
@@ -182,14 +184,14 @@ function initiateParametes(callback){
       targetTrees = Math.ceil((((1000-normalizedScore)/100).toDouble()))
   }
 
-  console.log(targetTrees)
-  console.log(normalizedScore)
-
 
   object.set('targetTrees',targetTrees)
   object.set('normalizedScore',normalizedScore)
 
-  callback(object)
+  console.log(targetTrees)
+  console.log(normalizedScore)
+
+  callback(targetTrees,normalizedScore)
 
   // writeNewUserFirebase(object)
 }
