@@ -1,5 +1,4 @@
 // create an express app
-'use strict';
 const express = require("express")
 const request = require('request')
 const http = require('http');
