@@ -4,13 +4,15 @@
   "description": "a really cool app",
   "main": "server.js",
   "scripts": {
-    "start": "forever node server.js"
+    "start": "pm2 node server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
+    "forever": "^3.0.4",
+    "pm2": "^4.5.5",
     "request": "^2.81.0",
     "url": "^0.11.0"
   }
