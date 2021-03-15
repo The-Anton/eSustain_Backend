@@ -4,7 +4,7 @@
   "description": "a really cool app",
   "main": "server.js",
   "scripts": {
-    "start": "pm2 start server.js"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
