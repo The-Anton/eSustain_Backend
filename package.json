@@ -4,7 +4,7 @@
   "description": "a really cool app",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "forever node server.js"
   },
   "keywords": [],
   "author": "",

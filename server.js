@@ -7,7 +7,6 @@ const app = express()
 var addressData = undefined
 var airData = undefined
 var forestData = undefined
-let object = new Map()
 var revGeoCodingUrl = "http://apis.mapmyindia.com/advancedmaps/v1/pi3yb3qxy8obnmsrjwh9lm4gghx7xvwm/rev_geocode?"
 var revGeoCodingUrl2 = "https://us1.locationiq.com/v1/reverse.php?key=pk.6500b602741f3cbdb1214e8fb297041a&format=json&"
 var forestDataUrl = "https://api.data.gov.in/resource/4b573150-4b0e-4a38-9f4b-ae643de88f09?api-key=579b464db66ec23bdd00000157bc862d9f2146d84b764d388c4b7319&format=json&filters[states_uts]="
@@ -35,7 +34,7 @@ app.get("/newuser", function (req, res) {
         fetchForestData(state,function(forest){
         
           forestData = forest
-          //console.log("====== Forest ======" + `${forestData.geographical_area}`)
+          console.log("====== Forest ======" + `${forestData.geographical_area}`)
   
           if(forestData == undefined || forestData == null){
             res.send("got undifined")
@@ -43,7 +42,7 @@ app.get("/newuser", function (req, res) {
             fetchAirData(latitude,longitude, function(air){
           
               airData = air
-              //console.log("====== Air ======" + `${airData .aqi}`)
+              console.log("====== Air ======" + `${airData .aqi}`)
               if(airData == undefined || airData == null){
                 res.send("got undifined")
               }else{
@@ -184,10 +183,6 @@ function initiateParametes(callback){
   }else{
       targetTrees = Math.ceil((((1000-normalizedScore)/100).toDouble()))
   }
-
-
-  object.set('targetTrees',targetTrees)
-  object.set('normalizedScore',normalizedScore)
 
   console.log(targetTrees)
   console.log(normalizedScore)
