@@ -4,7 +4,7 @@
   "description": "a really cool app",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "pm2-runtime start ecosystem.config.js --env production"
   },
   "keywords": [],
   "author": "",
