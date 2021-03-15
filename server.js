@@ -16,62 +16,8 @@ var airDataUrl = "https://api.weatherbit.io/v2.0/current/airquality?key=fe3cc9ee
 app.use(express.static("public"))
 const server = http.Server(app);
 
-// define the first route
+
 app.get("/newuser", function (req, res) {
-
-
-    const uid = req.param("uid")
-    const latitude = req.param("latitude")
-    const longitude = req.param("longitude")
-    
-    fetchAddressData(latitude,longitude, function (address){
-
-      addressData = address
-      var state = address.state
-      if(addressData == undefined || addressData ==null){
-        res.send("got undifined")
-      }else{
-        fetchForestData(state,function(forest){
-        
-          forestData = forest
-          console.log("====== Forest ======" + `${forestData.geographical_area}`)
-  
-          if(forestData == undefined || forestData == null){
-            res.send("got undifined")
-          }else{
-            fetchAirData(latitude,longitude, function(air){
-          
-              airData = air
-              console.log("====== Air ======" + `${airData .aqi}`)
-              if(airData == undefined || airData == null){
-                res.send("got undifined")
-              }else{
-                initiateParametes(function(targetTrees,normalizedScore){
-                  res.send({'targetTrees' :targetTrees,'normalizedScore':normalizedScore,'aqi':airData.aqi,'co':airData.co,'no2':airData.no2,'o3':airData.o3,'pm10':airData.pm10,'pm25':airData.pm25,'so2':airData.so2})
-                })
-              }
-            }) 
-          }
-          
-        })
-      }
-
-      //console.log("====== Address ======" + `${addressData.state}`)
-
-      
-       
-
-    })
-
-    
-    // forestData =  fetchForestData(airData.state)   
-
-    // user = initateUser(airData,forestData)
-    // writeNewUserFirebase(user)
-})
-
-
-app.get("/newuser2", function (req, res) {
 
 
   const uid = req.param("uid")
@@ -121,7 +67,7 @@ function fetchAddressData(latitude,longitude,callback){
 
   request(revGeoCodingUrl, { json: true }, (err, res, body) => {
     
-    if (err) { return console.log(err); }
+    if (err) { callback(console.log(err)) }
    
     var address = body.results[0]
     callback(address)
