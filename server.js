@@ -2,7 +2,8 @@
 const express = require("express")
 const request = require('request')
 const http = require('http');
-//var firebase = require('firebase')
+var admin = require('firebase-admin')
+var serviceAccount = require("./servicekey.json");
 const app = express()
 var addressData = undefined
 var airData = undefined
@@ -11,6 +12,14 @@ var revGeoCodingUrl = "http://apis.mapmyindia.com/advancedmaps/v1/pi3yb3qxy8obnm
 var revGeoCodingUrl2 = "https://us1.locationiq.com/v1/reverse.php?key=pk.6500b602741f3cbdb1214e8fb297041a&format=json&"
 var forestDataUrl = "https://api.data.gov.in/resource/4b573150-4b0e-4a38-9f4b-ae643de88f09?api-key=579b464db66ec23bdd00000157bc862d9f2146d84b764d388c4b7319&format=json&filters[states_uts]="
 var airDataUrl = "https://api.weatherbit.io/v2.0/current/airquality?key=fe3cc9eeea474df0af9999424550bdee&"
+
+// Initialize Firebase
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  databaseURL: "https://forest-59f3b-default-rtdb.firebaseio.com"
+});
+
+var database = admin.database()
 
 // use the express-static middleware
 app.use(express.static("public"))
@@ -29,20 +38,26 @@ app.get("/newuser", function (req, res) {
     addressData = address
     var state = address.state
 
-    console.log("====== Address ======" + `${addressData.state}`)
+    console.log("Address ======> " + `${addressData.state}`)
 
     fetchForestData(state,function(forest){
       
       forestData = forest
-      console.log("====== Forest ======" + `${forestData.geographical_area}`)
+      console.log("Forest ======> " + `${forestData.geographical_area}`)
 
       fetchAirData(latitude,longitude, function(air){
       
         airData = air
-        console.log("====== Air ======" + `${airData .aqi}`)
+        console.log("Aqi ======> " + `${airData .aqi}`)
 
         initiateParametes(function(targetTrees,normalizedScore){
-          res.send({'targetTrees' :targetTrees,'normalizedScore':normalizedScore,'aqi':airData.aqi,'co':airData.co,'no2':airData.no2,'o3':airData.o3,'pm10':airData.pm10,'pm25':airData.pm25,'so2':airData.so2})
+
+          var object = {'targetTrees' :targetTrees,'normalizedScore':normalizedScore,'aqi':airData.aqi,'co':airData.co,'no2':airData.no2,'o3':airData.o3,'pm10':airData.pm10,'pm25':airData.pm25,'so2':airData.so2}
+          writeNewUserFirebase(uid,object,function(object){
+            res.send(object)
+
+          })
+
         })
 
       }) 
@@ -53,10 +68,6 @@ app.get("/newuser", function (req, res) {
   })
 
   
-  // forestData =  fetchForestData(airData.state)   
-
-  // user = initateUser(airData,forestData)
-  // writeNewUserFirebase(user)
 })
 
 
@@ -135,24 +146,26 @@ function initiateParametes(callback){
 
   callback(targetTrees,normalizedScore)
 
-  // writeNewUserFirebase(object)
 }
 
-// function writeNewUserFirebase(object){
 
-//   firebase.initializeApp(firebaseConfig)
-//   let database = firebase.database()
 
-//   database.ref("customPath").update(object, function(error) {
-//     if (error) {
-//       // The write failed...
-//       console.log("Failed with error: " + error)
-//     } else {
-//       // The write was successful...
-//       console.log("success")
-//     }
-// })
-// }
+function writeNewUserFirebase(uid,object,callback){
+
+  var path = "/Users/" + uid
+  database.ref(path).update(object, function(error) {
+    if (error) {
+      // The write failed...
+      console.log("Failed with error: " + error)
+    } else {
+      // The write was successful...
+      console.log("success")
+      
+    }
+    callback(object)
+  })
+
+}
 
 app.get("/system/reboot", (req, res)=>{
   setTimeout(function () {
@@ -168,6 +181,8 @@ app.get("/system/reboot", (req, res)=>{
       process.exit();
   }, 1000);
 })
+
+
 // start the server listening for requests
 server.listen(process.env.PORT || 3000, 
 	() => console.log("Server is running..."));
