@@ -50,11 +50,32 @@ app.get("/newuser", function (req, res) {
         airData = air
         console.log("Aqi ======> " + `${airData .aqi}`)
 
-        initiateParametes(function(targetTrees,normalizedScore){
+        initiateParametes(function(obj){
+          var object = {
+                          'normalizedScore':obj["normalizedScore"],
+                          'aqi':airData.aqi,
+                          'co':airData.co,
+                          'no2':airData.no2,
+                          'o3':airData.o3,
+                          'pm10':airData.pm10,
+                          'pm25':airData.pm25,
+                          'so2':airData.so2,
+                          'recommendedTarget' :obj["recommendedTarget"],
+                          'forestDensity':obj["forestDensity"],
+                          'totalArea':obj["totalArea"],
+                          'noForest':obj["noForest"],
+                          'openForest':obj["openForest"],
+                          'actualForest':obj["actualForest"],
+                          updated:true
+                        }
+          writeNewUserFirebase(uid,object,function(status){
+            
+            if(status==true){
+              res.send(object)
+            }else{
+              res.send(null)
 
-          var object = {'targetTrees' :targetTrees,'normalizedScore':normalizedScore,'aqi':airData.aqi,'co':airData.co,'no2':airData.no2,'o3':airData.o3,'pm10':airData.pm10,'pm25':airData.pm25,'so2':airData.so2}
-          writeNewUserFirebase(uid,object,function(object){
-            res.send(object)
+            }
 
           })
 
@@ -128,23 +149,26 @@ function fetchAirData(latitude,longitude,callback){
 
 function initiateParametes(callback){
 
-  var totalTreeCover = forestData._area
-  var totalArea = forestData.geographical_area
-  var forestDensity = (totalTreeCover/totalArea)*100
+  var obj = new Map()
+  obj["openForest"] = parseInt(forestData._area)
+  obj["totalArea"] = parseInt(forestData.geographical_area)
+  obj["forestDensity"] = (obj["openForest"]/obj["totalArea"])*100
   var aqi = airData.aqi
-  var normalizedScore = 1000- (aqi/forestDensity)
-  var targetTrees = 0;
+  obj["normalizedScore"] = 1000- (aqi/obj["forestDensity"])
+  obj["recommendedTarget"] = 0;
+  obj["noForest"] =0;
+  obj["actualForest"]=0;
 
-  if(normalizedScore >500){
-      targetTrees = 4
+  if(obj["normalizedScore"] >500){
+    obj["recommendedTarget"] = 4
   }else{
-      targetTrees = Math.ceil((((1000-normalizedScore)/100).toDouble()))
+    obj["recommendedTarget"] = Math.ceil((((1000-obj["normalizedScore"])/100).toDouble()))
   }
 
-  console.log(targetTrees)
-  console.log(normalizedScore)
+  console.log(obj["recommendedTarget"])
+  console.log(obj["normalizedScore"])
 
-  callback(targetTrees,normalizedScore)
+  callback(obj)
 
 }
 
@@ -157,12 +181,13 @@ function writeNewUserFirebase(uid,object,callback){
     if (error) {
       // The write failed...
       console.log("Failed with error: " + error)
+      callback(false)
     } else {
       // The write was successful...
       console.log("success")
-      
+      callback(true)
     }
-    callback(object)
+    
   })
 
 }
