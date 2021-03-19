@@ -49,7 +49,11 @@ app.get("/newuser", function (req, res) {
       
         airData = air
         console.log("Aqi ======> " + `${airData .aqi}`)
+        console.log("City ======> " + `${addressData.state_district.toString()}`)
+        console.log("State ======> " + `${addressData.state.toString()}`)
+        console.log("Country ======> " + `${addressData.country.toString()}`)
 
+      
         initiateParametes(function(obj){
           var object = {
                           'normalizedScore':obj["normalizedScore"],
@@ -66,9 +70,9 @@ app.get("/newuser", function (req, res) {
                           'noForest':obj["noForest"],
                           'openForest':obj["openForest"],
                           'actualForest':obj["actualForest"],
-                          'city':addressData.city,
-                          'state':addressData.state,
-                          'country':addressData.country,
+                          'city':addressData.state_district.toString(),
+                          'state':addressData.state.toString(),
+                          'country':addressData.country.toString(),
                           updated:true
                         }
           writeNewUserFirebase(uid,object,function(status){
@@ -180,7 +184,10 @@ function initiateParametes(callback){
 function writeNewUserFirebase(uid,object,callback){
 
   var path = "/Users/" + uid
+
   database.ref(path).update(object, function(error) {
+    console.log("Uid: " + uid)
+
     if (error) {
       // The write failed...
       console.log("Failed with error: " + error)
