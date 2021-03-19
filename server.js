@@ -66,6 +66,9 @@ app.get("/newuser", function (req, res) {
                           'noForest':obj["noForest"],
                           'openForest':obj["openForest"],
                           'actualForest':obj["actualForest"],
+                          'city':addressData.city,
+                          'state':addressData.state,
+                          'country':addressData.country,
                           updated:true
                         }
           writeNewUserFirebase(uid,object,function(status){
