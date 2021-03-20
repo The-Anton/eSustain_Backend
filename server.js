@@ -13,6 +13,29 @@ var revGeoCodingUrl2 = "https://us1.locationiq.com/v1/reverse.php?key=pk.6500b60
 var forestDataUrl = "https://api.data.gov.in/resource/4b573150-4b0e-4a38-9f4b-ae643de88f09?api-key=579b464db66ec23bdd00000157bc862d9f2146d84b764d388c4b7319&format=json&filters[states_uts]="
 var airDataUrl = "https://api.weatherbit.io/v2.0/current/airquality?key=fe3cc9eeea474df0af9999424550bdee&"
 
+
+
+var nullResponse = {
+  'normalizedScore':"",
+  'aqi':0.0,
+  'co':0.0,
+  'no2':0.0,
+  'o3':0.0,
+  'pm10':0.0,
+  'pm25':0.0,
+  'so2':0.0,
+  'recommendedTarget' :0,
+  'forestDensity':0.0,
+  'totalArea':0,
+  'noForest':0,
+  'openForest':0,
+  'actualForest':0,
+  'city':"",
+  'state':"",
+  'status':false,
+  'country':"",
+  updated:false
+}
 // Initialize Firebase
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -77,6 +100,7 @@ app.get("/newuser", function (req, res) {
                                                                       'actualForest':obj["actualForest"],
                                                                       'city':addressData.state_district.toString(),
                                                                       'state':addressData.state.toString(),
+                                                                      'status':true,
                                                                       'country':addressData.country.toString(),
                                                                       updated:true
                                                                     }
@@ -85,7 +109,7 @@ app.get("/newuser", function (req, res) {
                                                         if(status==true){
                                                           res.send(object)
                                                         }else{
-                                                          res.send(null)
+                                                          res.send(nullResponse)
                                             
                                                         }
                                             
@@ -95,7 +119,7 @@ app.get("/newuser", function (req, res) {
                                                     
                                                   }else{
                                                         // no air data
-                                                        res.send({'status':false})
+                                                        res.send(nullResponse)
 
                                                   }
                                       
@@ -103,7 +127,7 @@ app.get("/newuser", function (req, res) {
                                 
                               }else{
                                 // no forest data
-                                res.send({'status':false})
+                                res.send(nullResponse)
 
                               }
                     
@@ -111,7 +135,7 @@ app.get("/newuser", function (req, res) {
         
       }else{
         // no address data
-        res.send({'status':false})
+        res.send(nullResponse)
 
       }
     
