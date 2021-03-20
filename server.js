@@ -36,63 +36,85 @@ app.get("/newuser", function (req, res) {
   fetchAddressData2(latitude,longitude, function (address){
 
     addressData = address
-    var state = address.state
 
-    console.log("Address ======> " + `${addressData.state}`)
+      if(addressData!=null || addressData!=undefined){
+        var state = address.state
 
-    fetchForestData(state,function(forest){
-      
-      forestData = forest
-      console.log("Forest ======> " + `${forestData.geographical_area}`)
+        console.log("Address ======> " + `${addressData.state}`)
 
-      fetchAirData(latitude,longitude, function(air){
-      
-        airData = air
-        console.log("Aqi ======> " + `${airData .aqi}`)
-        console.log("City ======> " + `${addressData.state_district.toString()}`)
-        console.log("State ======> " + `${addressData.state.toString()}`)
-        console.log("Country ======> " + `${addressData.country.toString()}`)
+                  fetchForestData(state,function(forest){
+                    
+                    forestData = forest
 
-      
-        initiateParametes(function(obj){
-          var object = {
-                          'normalizedScore':obj["normalizedScore"],
-                          'aqi':airData.aqi,
-                          'co':airData.co,
-                          'no2':airData.no2,
-                          'o3':airData.o3,
-                          'pm10':airData.pm10,
-                          'pm25':airData.pm25,
-                          'so2':airData.so2,
-                          'recommendedTarget' :obj["recommendedTarget"],
-                          'forestDensity':obj["forestDensity"],
-                          'totalArea':obj["totalArea"],
-                          'noForest':obj["noForest"],
-                          'openForest':obj["openForest"],
-                          'actualForest':obj["actualForest"],
-                          'city':addressData.state_district.toString(),
-                          'state':addressData.state.toString(),
-                          'country':addressData.country.toString(),
-                          updated:true
-                        }
-          writeNewUserFirebase(uid,object,function(status){
-            
-            if(status==true){
-              res.send(object)
-            }else{
-              res.send(null)
+                              if(forestData!=null || forestData!=undefined){
+                                      console.log("Forest ======> " + `${forestData.geographical_area}`)
+                        
 
-            }
+                                      fetchAirData(latitude,longitude, function(air){
+                                          
+                                                  airData = air
+                                                  console.log("Aqi ======> " + `${airData .aqi}`)
+                                                  console.log("City ======> " + `${addressData.state_district.toString()}`)
+                                                  console.log("State ======> " + `${addressData.state.toString()}`)
+                                                  console.log("Country ======> " + `${addressData.country.toString()}`)
+                                          
+                                                  if(forestData!=null || forestData!=undefined){
+                                                    initiateParametes(function(obj){
+                                                      var object = {
+                                                                      'normalizedScore':obj["normalizedScore"],
+                                                                      'aqi':airData.aqi,
+                                                                      'co':airData.co,
+                                                                      'no2':airData.no2,
+                                                                      'o3':airData.o3,
+                                                                      'pm10':airData.pm10,
+                                                                      'pm25':airData.pm25,
+                                                                      'so2':airData.so2,
+                                                                      'recommendedTarget' :obj["recommendedTarget"],
+                                                                      'forestDensity':obj["forestDensity"],
+                                                                      'totalArea':obj["totalArea"],
+                                                                      'noForest':obj["noForest"],
+                                                                      'openForest':obj["openForest"],
+                                                                      'actualForest':obj["actualForest"],
+                                                                      'city':addressData.state_district.toString(),
+                                                                      'state':addressData.state.toString(),
+                                                                      'country':addressData.country.toString(),
+                                                                      updated:true
+                                                                    }
+                                                      writeNewUserFirebase(uid,object,function(status){
+                                                        
+                                                        if(status==true){
+                                                          res.send(object)
+                                                        }else{
+                                                          res.send(null)
+                                            
+                                                        }
+                                            
+                                                      })
+                                            
+                                                    })        
+                                                    
+                                                  }else{
+                                                        // no air data
+                                                        res.send({'status':false})
 
-          })
+                                                  }
+                                      
+                                      }) 
+                                
+                              }else{
+                                // no forest data
+                                res.send({'status':false})
 
-        })
+                              }
+                    
+                  })
+        
+      }else{
+        // no address data
+        res.send({'status':false})
 
-      }) 
+      }
     
-    })
-     
-
   })
 
   
@@ -106,11 +128,13 @@ function fetchAddressData(latitude,longitude,callback){
 
   request(revGeoCodingUrl, { json: true }, (err, res, body) => {
     
-    if (err) { callback(console.log(err)) }
-   
+    //callback(console.log(err))
+    if (err) {
+      return console.error('fetch failed:', err);
+    }
     var address = body.results[0]
     callback(address)
-  });
+  })
 
 }
 
@@ -120,11 +144,13 @@ function fetchAddressData2(latitude,longitude,callback){
 
   request(revGeoCodingUrl2, { json: true }, (err, res, body) => {
     
-    if (err) { return console.log(err); }
-   
+    //callback(console.log(err))
+    if (err) {
+      return console.error('fetch failed:', err);
+    }
     var address = body.address
     callback(address)
-  });
+  })
 
 }
 
@@ -133,11 +159,13 @@ function fetchForestData(state,callback){
   forestDataUrl += state
   request(forestDataUrl, { json: true }, (err, res, body) => {
 
-    if (err) { return console.log(err); }
-
+    //console(console.log(err))
+    if (err) {
+      return console.error('fetch failed:', err);
+    }
     var  forest = body.records[0]
     callback(forest)
-  });
+  })
 
 }
 
@@ -146,11 +174,13 @@ function fetchAirData(latitude,longitude,callback){
   airDataUrl+= "lat="+latitude + "&lon=" + longitude
 
   request(airDataUrl, { json: true }, (err, res, body) => {
-    if (err) { return console.log(err); }
-
+    //console(console.log(err))
+    if (err) {
+      return console.error('fetch failed:', err);
+    }
     var air = body.data[0]
     callback(air)
-  });
+  })
 
 }
 
@@ -190,7 +220,9 @@ function writeNewUserFirebase(uid,object,callback){
 
     if (error) {
       // The write failed...
-      console.log("Failed with error: " + error)
+      if (error) {
+        return console.error('firebse write failed:', err);
+      }
       callback(false)
     } else {
       // The write was successful...
