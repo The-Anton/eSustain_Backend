@@ -16,7 +16,7 @@ var airDataUrl = "https://api.weatherbit.io/v2.0/current/airquality?key=fe3cc9ee
 
 
 var nullResponse = {
-  'normalizedScore':"",
+  'normalizedScore':0.0,
   'aqi':0.0,
   'co':0.0,
   'no2':0.0,
@@ -30,10 +30,10 @@ var nullResponse = {
   'noForest':0,
   'openForest':0,
   'actualForest':0,
-  'city':"",
-  'state':"",
+  'city':"city",
+  'state':"state",
   'apistatus':false,
-  'country':"",
+  'country':"country",
   updated:false
 }
 // Initialize Firebase
@@ -244,10 +244,9 @@ function writeNewUserFirebase(uid,object,callback){
 
     if (error) {
       // The write failed...
-      if (error) {
-        return console.error('firebse write failed:', err);
-      }
-      callback(false)
+      console.error('firebse write failed:', err);
+        return res.send(nullResponse)
+      
     } else {
       // The write was successful...
       console.log("success")
