@@ -32,7 +32,7 @@ var nullResponse = {
   'actualForest':0,
   'city':"",
   'state':"",
-  'status':false,
+  'apistatus':false,
   'country':"",
   updated:false
 }
@@ -100,7 +100,7 @@ app.get("/newuser", function (req, res) {
                                                                       'actualForest':obj["actualForest"],
                                                                       'city':addressData.state_district.toString(),
                                                                       'state':addressData.state.toString(),
-                                                                      'status':true,
+                                                                      'apistatus':true,
                                                                       'country':addressData.country.toString(),
                                                                       updated:true
                                                                     }
