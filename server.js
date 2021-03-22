@@ -107,7 +107,7 @@ app.get("/newuser", function (req, res) {
                                                       writeNewUserFirebase(uid,object,function(status){
                                                         
                                                         if(status==true){
-                                                          res.send(object)
+                                                          res.send(nullResponse)
                                                         }else{
                                                           res.send(nullResponse)
                                             
