@@ -1,19 +1,20 @@
-// create an express app
 const express = require("express")
 const request = require('request')
 const http = require('http');
 var admin = require('firebase-admin')
 var serviceAccount = require("./servicekey.json");
+// const airApiService = require("./apiService/airApiDataService.mjs");
+// const forestApiService = require("./apiService/forestApiDataService.mjs");
+// const groundWaterApiService = require("./apiService/groundWaterApiDataService.mjs");
+// const addressApiService = require("./apiService/");
+// const firebaseService = require("./apiService/firebaseService.mjs");
 const app = express()
-var addressData = undefined
-var airData = undefined
-var forestData = undefined
 var revGeoCodingUrl = "http://apis.mapmyindia.com/advancedmaps/v1/pi3yb3qxy8obnmsrjwh9lm4gghx7xvwm/rev_geocode?"
 var revGeoCodingUrl2 = "https://us1.locationiq.com/v1/reverse.php?key=pk.6500b602741f3cbdb1214e8fb297041a&format=json&"
 var forestDataUrl = "https://api.data.gov.in/resource/4b573150-4b0e-4a38-9f4b-ae643de88f09?api-key=579b464db66ec23bdd00000157bc862d9f2146d84b764d388c4b7319&format=json&filters[states_uts]="
 var airDataUrl = "https://api.weatherbit.io/v2.0/current/airquality?key=fe3cc9eeea474df0af9999424550bdee&"
 
-
+var check =0;
 
 var nullResponse = {
   'normalizedScore':0.0,
@@ -49,14 +50,22 @@ app.use(express.static("public"))
 const server = http.Server(app);
 
 
+var addressData = undefined
+var airData = undefined
+var forestData = undefined
 app.get("/newuser", function (req, res) {
+  addressData = undefined
+  airData = undefined
+  forestData = undefined
 
+  console.log(addressData)
+  console.log(forestData)
 
   const uid = req.param("uid")
   const latitude = req.param("latitude")
   const longitude = req.param("longitude")
   
-  fetchAddressData2(latitude,longitude, function (address){
+ fetchAddressData2(latitude,longitude, function (address){
 
     addressData = address
 
@@ -65,7 +74,7 @@ app.get("/newuser", function (req, res) {
 
         console.log("Address ======> " + `${addressData.state}`)
 
-                  fetchForestData(state,function(forest){
+                 fetchForestData(state,function(forest){
                     
                     forestData = forest
 
@@ -73,7 +82,7 @@ app.get("/newuser", function (req, res) {
                                       console.log("Forest ======> " + `${forestData.geographical_area}`)
                         
 
-                                      fetchAirData(latitude,longitude, function(air){
+                                  fetchAirData(latitude,longitude, function(air){
                                           
                                                   airData = air
                                                   console.log("Aqi ======> " + `${airData .aqi}`)
@@ -82,13 +91,15 @@ app.get("/newuser", function (req, res) {
                                                   console.log("Country ======> " + `${addressData.country.toString()}`)
                                           
                                                   if(forestData!=null || forestData!=undefined){
-                                                    initiateParametes(function(obj){
+                                                    initiateParametes(airData,forestData,function(obj){
+                                                      var locationObj = {'0':latitude.toString(), '1':longitude.toString()}
                                                       var object = {
                                                                       'normalizedScore':obj["normalizedScore"],
                                                                       'aqi':airData.aqi,
                                                                       'co':airData.co,
                                                                       'no2':airData.no2,
                                                                       'o3':airData.o3,
+                                                                      'location':locationObj,
                                                                       'pm10':airData.pm10,
                                                                       'pm25':airData.pm25,
                                                                       'so2':airData.so2,
@@ -104,12 +115,13 @@ app.get("/newuser", function (req, res) {
                                                                       'country':addressData.country.toString(),
                                                                       updated:true
                                                                     }
-                                                      writeNewUserFirebase(uid,object,function(status){
+                                                     writeNewUserFirebase(uid,object,function(status){
                                                         
                                                         if(status==true){
-                                                          res.send(object)
+                                                          return res.send(object).end()
+                                
                                                         }else{
-                                                          res.send(nullResponse)
+                                                          return res.send(nullResponse).end()
                                             
                                                         }
                                             
@@ -119,7 +131,7 @@ app.get("/newuser", function (req, res) {
                                                     
                                                   }else{
                                                         // no air data
-                                                        res.send(nullResponse)
+                                                       return  res.send(nullResponse)
 
                                                   }
                                       
@@ -127,7 +139,7 @@ app.get("/newuser", function (req, res) {
                                 
                               }else{
                                 // no forest data
-                                res.send(nullResponse)
+                               return  res.send(nullResponse)
 
                               }
                     
@@ -135,7 +147,7 @@ app.get("/newuser", function (req, res) {
         
       }else{
         // no address data
-        res.send(nullResponse)
+        return res.send(nullResponse)
 
       }
     
@@ -181,6 +193,9 @@ function fetchAddressData2(latitude,longitude,callback){
 function fetchForestData(state,callback){
 
   forestDataUrl += state
+  console.log("fetching forest data")
+
+  
   request(forestDataUrl, { json: true }, (err, res, body) => {
 
     //console(console.log(err))
@@ -188,6 +203,7 @@ function fetchForestData(state,callback){
       return console.error('fetch failed:', err);
     }
     var  forest = body.records[0]
+    console.log(forest)
     callback(forest)
   })
 
@@ -208,7 +224,7 @@ function fetchAirData(latitude,longitude,callback){
 
 }
 
-function initiateParametes(callback){
+function initiateParametes(airData,forestData,callback){
 
   var obj = new Map()
   obj["openForest"] = parseInt(forestData._area)
