@@ -298,11 +298,14 @@ function writeNewUserFirebase(uid,object,callback){
 
 function restartInstance(){
   process.on("exit", function () {
+
       require("child_process").spawn(process.argv.shift(), process.argv, {
           cwd: process.cwd(),
           detached : true,
           stdio: "inherit"
       });
+      console.log("Restarting instance!!!!!!")
+
   });
   process.exit();
 };
