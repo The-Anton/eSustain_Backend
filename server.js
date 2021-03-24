@@ -67,13 +67,11 @@ app.get("/newuser", function (req, res) {
   if(isLoading == true) {
     // If the app is loading, notify the client that he should wait
     // You can check for the status code in your client and react accordingly
-    
     console.log("I'm currently being used, hold on")
-    
     return res(nullResponse)
-}
+  }
 
-isLoading = true
+  isLoading = true
   addressData = undefined
   airData = undefined
   forestData = undefined
@@ -224,7 +222,6 @@ function fetchForestData(state,callback){
       return console.error('fetch failed:', err);
     }
     var  forest = body.records[0]
-    console.log(forest)
     callback(forest)
   })
 
