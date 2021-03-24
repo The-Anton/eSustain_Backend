@@ -53,6 +53,23 @@ const server = http.Server(app);
 var addressData = undefined
 var airData = undefined
 var forestData = undefined
+
+
+console.log("This is pid " + process.pid);
+
+setTimeout(function () {
+    process.on("exit", function () {
+        require("child_process").spawn(process.argv.shift(), process.argv, {
+            cwd: process.cwd(),
+            detached : true,
+            stdio: "inherit"
+        });
+    });
+    process.exit();
+}, 10000);
+
+
+
 app.get("/newuser", function (req, res) {
 
 
@@ -70,8 +87,6 @@ isLoading = true
   airData = undefined
   forestData = undefined
 
-  console.log(addressData)
-  console.log(forestData)
 
   const uid = req.param("uid")
   const latitude = req.param("latitude")
@@ -84,23 +99,23 @@ isLoading = true
       if(addressData!=null || addressData!=undefined){
         var state = address.state
 
-        console.log("Address ======> " + `${addressData.state}`)
+        console.log("Address: " + `${addressData.state}`)
 
                  fetchForestData(state,function(forest){
                     
                     forestData = forest
 
                               if(forestData!=null || forestData!=undefined){
-                                      console.log("Forest ======> " + `${forestData.geographical_area}`)
+                                      console.log("Forest: " + `${forestData.geographical_area}`)
                         
 
                                   fetchAirData(latitude,longitude, function(air){
                                           
                                                   airData = air
-                                                  console.log("Aqi ======> " + `${airData .aqi}`)
-                                                  console.log("City ======> " + `${addressData.state_district.toString()}`)
-                                                  console.log("State ======> " + `${addressData.state.toString()}`)
-                                                  console.log("Country ======> " + `${addressData.country.toString()}`)
+                                                  console.log("Aqi: " + `${airData .aqi}`)
+                                                  console.log("City: " + `${addressData.state_district.toString()}`)
+                                                  console.log("State: " + `${addressData.state.toString()}`)
+                                                  console.log("Country: " + `${addressData.country.toString()}`)
                                           
                                                   if(forestData!=null || forestData!=undefined){
                                                     initiateParametes(airData,forestData,function(obj){
@@ -272,14 +287,14 @@ function writeNewUserFirebase(uid,object,callback){
 
     if (error) {
       // The write failed...
-      console.error('firebse write failed:', err);
+      console.error('Status: firebse write failed =>', err);
       isLoading = false
 
         return res.send(nullResponse)
       
     } else {
       // The write was successful...
-      console.log("success")
+      console.log("Status: success")
       isLoading = false
 
       callback(true)
@@ -304,18 +319,7 @@ app.get("/system/reboot", (req, res)=>{
   }, 1000);
 })
 
-console.log("This is pid " + process.pid);
 
-setTimeout(function () {
-    process.on("exit", function () {
-        require("child_process").spawn(process.argv.shift(), process.argv, {
-            cwd: process.cwd(),
-            detached : true,
-            stdio: "inherit"
-        });
-    });
-    process.exit();
-}, 5000);
 
 
 
