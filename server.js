@@ -14,7 +14,7 @@ var revGeoCodingUrl2 = "https://us1.locationiq.com/v1/reverse.php?key=pk.6500b60
 var forestDataUrl = "https://api.data.gov.in/resource/4b573150-4b0e-4a38-9f4b-ae643de88f09?api-key=579b464db66ec23bdd00000157bc862d9f2146d84b764d388c4b7319&format=json&filters[states_uts]="
 var airDataUrl = "https://api.weatherbit.io/v2.0/current/airquality?key=fe3cc9eeea474df0af9999424550bdee&"
 
-var check =0;
+var isLoading = false
 
 var nullResponse = {
   'normalizedScore':0.0,
@@ -54,6 +54,18 @@ var addressData = undefined
 var airData = undefined
 var forestData = undefined
 app.get("/newuser", function (req, res) {
+
+
+  if(isLoading == true) {
+    // If the app is loading, notify the client that he should wait
+    // You can check for the status code in your client and react accordingly
+    
+    console.log("I'm currently being used, hold on")
+    
+    return res(nullResponse)
+}
+
+isLoading = true
   addressData = undefined
   airData = undefined
   forestData = undefined
@@ -261,11 +273,15 @@ function writeNewUserFirebase(uid,object,callback){
     if (error) {
       // The write failed...
       console.error('firebse write failed:', err);
+      isLoading = false
+
         return res.send(nullResponse)
       
     } else {
       // The write was successful...
       console.log("success")
+      isLoading = false
+
       callback(true)
     }
     
