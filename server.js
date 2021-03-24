@@ -57,16 +57,7 @@ var forestData = undefined
 
 console.log("This is pid " + process.pid);
 
-setTimeout(function () {
-    process.on("exit", function () {
-        require("child_process").spawn(process.argv.shift(), process.argv, {
-            cwd: process.cwd(),
-            detached : true,
-            stdio: "inherit"
-        });
-    });
-    process.exit();
-}, 10000);
+
 
 
 
@@ -146,10 +137,10 @@ isLoading = true
                                                         
                                                         if(status==true){
                                                           return res.send(object).end()
-                                
+                                                          restartInstance()
                                                         }else{
                                                           return res.send(nullResponse).end()
-                                            
+                                                          restartInstance()
                                                         }
                                             
                                                       })
@@ -159,6 +150,7 @@ isLoading = true
                                                   }else{
                                                         // no air data
                                                        return  res.send(nullResponse)
+                                                       restartInstance()
 
                                                   }
                                       
@@ -167,6 +159,7 @@ isLoading = true
                               }else{
                                 // no forest data
                                return  res.send(nullResponse)
+                               restartInstance()
 
                               }
                     
@@ -175,6 +168,7 @@ isLoading = true
       }else{
         // no address data
         return res.send(nullResponse)
+        restartInstance()
 
       }
     
@@ -303,6 +297,18 @@ function writeNewUserFirebase(uid,object,callback){
   })
 
 }
+
+
+function restartInstance(){
+  process.on("exit", function () {
+      require("child_process").spawn(process.argv.shift(), process.argv, {
+          cwd: process.cwd(),
+          detached : true,
+          stdio: "inherit"
+      });
+  });
+  process.exit();
+};
 
 app.get("/system/reboot", (req, res)=>{
   setTimeout(function () {
