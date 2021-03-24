@@ -134,11 +134,11 @@ app.get("/newuser", function (req, res) {
                                                      writeNewUserFirebase(uid,object,function(status){
                                                         
                                                         if(status==true){
+                                                          restartInstance()
                                                           return res.send(object).end()
-                                                          restartInstance()
                                                         }else{
-                                                          return res.send(nullResponse).end()
                                                           restartInstance()
+                                                          return res.send(nullResponse).end()
                                                         }
                                             
                                                       })
@@ -147,8 +147,9 @@ app.get("/newuser", function (req, res) {
                                                     
                                                   }else{
                                                         // no air data
+                                                        restartInstance()
                                                        return  res.send(nullResponse)
-                                                       restartInstance()
+                                                       
 
                                                   }
                                       
@@ -156,8 +157,9 @@ app.get("/newuser", function (req, res) {
                                 
                               }else{
                                 // no forest data
+                                restartInstance()
                                return  res.send(nullResponse)
-                               restartInstance()
+                               
 
                               }
                     
@@ -165,8 +167,9 @@ app.get("/newuser", function (req, res) {
         
       }else{
         // no address data
-        return res.send(nullResponse)
         restartInstance()
+        return res.send(nullResponse)
+        
 
       }
     
