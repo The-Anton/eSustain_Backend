@@ -194,10 +194,26 @@ function fetchGroundWaterData(state,district){
             doc =  await cityRef.get();
             if (!doc.exists) {
                 console.error('No ground water document exsist!');
+                
                 reject('No ground water document exsist!')
             } else {
                 console.log('Document data:', doc.data());
-                resolve(doc)
+                var list = [
+                  doc.data().annual_allocation_domestic_2025.toString(),
+                  doc.data().annual_extractable.toString(),
+                  doc.data().annual_extraction.toString(),
+                  doc.data().annual_extraction_domestic_industrial_use.toString(),
+                  doc.data().annual_extraction_irrigation.toString(),
+                  doc.data().annual_recharge.toString(),
+                  doc.data().future_availability.toString(),
+                  doc.data().recharge_other_monsoon.toString(),
+                  doc.data().recharge_other_non_monsoon.toString(),
+                  doc.data().recharge_rainfall_monsoon.toString(),
+                  doc.data().recharge_rainfall_non_monsoon.toString(),
+                  doc.data().stage.toString(),
+                  doc.data().total_natural_discharges.toString()
+            ]
+                resolve(list)
             }
           })();
          
@@ -219,7 +235,7 @@ function initiateParams(airData,forestData,groundwater){
   obj["totalArea"] = parseInt(forestData.geo)
   obj["forestDensity"] = (obj["openForest"]/obj["totalArea"])*100
   obj["normalizedScore"] = 1000- (aqi/obj["forestDensity"])
-  obj["recommendedTarget"] = 0;
+  obj["recommendedTarget"] = 0
   if(obj["normalizedScore"] >500){
     obj["recommendedTarget"] = 4
   }else{
@@ -229,23 +245,9 @@ function initiateParams(airData,forestData,groundwater){
 
   //groundwater
   
-  var list = [
-        groundwater.annual_allocation_domestic_2025.toString(),
-        groundwater.annual_extractable.toString(),
-        groundwater.annual_extraction.toString(),
-        groundwater.annual_extraction_domestic_industrial_use.toString(),
-        groundwater.annual_extraction_irrigation.toString(),
-        groundwater.annual_recharge.toString(),
-        groundwater.future_availability.toString(),
-        groundwater.recharge_other_monsoon.toString(),
-        groundwater.recharge_other_non_monsoon.toString(),
-        groundwater.recharge_rainfall_monsoon.toString(),
-        groundwater.recharge_rainfall_non_monsoon.toString(),
-        groundwater.stage.toString(),
-        groundwater.total_natural_discharges.toString()
-  ]
-  console.log(list)
-  obj["groundWaterData"] = list
+
+  console.log(groundwater)
+  obj["groundWaterData"] = groundwater
 
   console.log(obj["recommendedTarget"])
   console.log(obj["normalizedScore"])
