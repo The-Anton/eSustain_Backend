@@ -197,22 +197,23 @@ function fetchGroundWaterData(state,district){
                 
                 reject('No ground water document exsist!')
             } else {
-                console.log('Document data:', doc.data());
                 var list = [
-                  doc.data().annual_allocation_domestic_2025.toString(),
-                  doc.data().annual_extractable.toString(),
-                  doc.data().annual_extraction.toString(),
-                  doc.data().annual_extraction_domestic_industrial_use.toString(),
-                  doc.data().annual_extraction_irrigation.toString(),
-                  doc.data().annual_recharge.toString(),
-                  doc.data().future_availability.toString(),
-                  doc.data().recharge_other_monsoon.toString(),
-                  doc.data().recharge_other_non_monsoon.toString(),
-                  doc.data().recharge_rainfall_monsoon.toString(),
-                  doc.data().recharge_rainfall_non_monsoon.toString(),
-                  doc.data().stage.toString(),
-                  doc.data().total_natural_discharges.toString()
+                  doc.annual_allocation_domestic_2025.toString(),
+                  doc.annual_extractable.toString(),
+                  doc.annual_extraction.toString(),
+                  doc.annual_extraction_domestic_industrial_use.toString(),
+                  doc.annual_extraction_irrigation.toString(),
+                  doc.annual_recharge.toString(),
+                  doc.future_availability.toString(),
+                  doc.recharge_other_monsoon.toString(),
+                  doc.recharge_other_non_monsoon.toString(),
+                  doc.recharge_rainfall_monsoon.toString(),
+                  doc.recharge_rainfall_non_monsoon.toString(),
+                  doc.stage.toString(),
+                  doc.total_natural_discharges.toString()
             ]
+            console.log('Document data:', list);
+
                 resolve(list)
             }
           })();
