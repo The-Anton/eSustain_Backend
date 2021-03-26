@@ -223,7 +223,7 @@ function initiateParams(airData,forestData,groundwater){
   if(obj["normalizedScore"] >500){
     obj["recommendedTarget"] = 4
   }else{
-    obj["recommendedTarget"] = Math.ceil((((1000-obj["normalizedScore"])/100).toDouble()))
+    obj["recommendedTarget"] = Math.ceil((((1000-obj["normalizedScore"])/100))
   }
   var aqi = airData.aqi
 
