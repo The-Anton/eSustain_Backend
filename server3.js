@@ -244,6 +244,7 @@ function initiateParams(airData,forestData,groundwater){
         groundwater.stage.toString(),
         groundwater.total_natural_discharges.toString()
   ]
+  console.log(list)
   obj["groundWaterData"] = list
 
   console.log(obj["recommendedTarget"])
