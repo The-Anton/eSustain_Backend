@@ -2,7 +2,7 @@
   "name": "esustain",
   "version": "1.0.0",
   "description": "a really cool app",
-  "main": "server.js",
+  "main": "server3.js",
   "scripts": {
     "start": "pm2-runtime start ecosystem.config.js --env production"
   },
