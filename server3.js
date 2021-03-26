@@ -198,22 +198,22 @@ function fetchGroundWaterData(state,district){
                 reject('No ground water document exsist!')
             } else {
                 var list = [
-                  doc.annual_allocation_domestic_2025.toString(),
-                  doc.annual_extractable.toString(),
-                  doc.annual_extraction.toString(),
-                  doc.annual_extraction_domestic_industrial_use.toString(),
-                  doc.annual_extraction_irrigation.toString(),
-                  doc.annual_recharge.toString(),
-                  doc.future_availability.toString(),
-                  doc.recharge_other_monsoon.toString(),
-                  doc.recharge_other_non_monsoon.toString(),
-                  doc.recharge_rainfall_monsoon.toString(),
-                  doc.recharge_rainfall_non_monsoon.toString(),
-                  doc.stage.toString(),
-                  doc.total_natural_discharges.toString()
+                  
+                doc.data().annual_allocation_domestic_2025.toString(),
+                  doc.data().annual_extractable.toString(),
+                  doc.data().annual_extraction.toString(),
+                  doc.data().annual_extraction_domestic_industrial_use.toString(),
+                  doc.data().annual_extraction_irrigation.toString(),
+                  doc.data().annual_recharge.toString(),
+                  doc.data().future_availability.toString(),
+                  doc.data().recharge_other_monsoon.toString(),
+                  doc.data().recharge_other_non_monsoon.toString(),
+                  doc.data().recharge_rainfall_monsoon.toString(),
+                  doc.data().recharge_rainfall_non_monsoon.toString(),
+                  doc.data().stage.toString(),
+                  doc.data().total_natural_discharges.toString()
             ]
-            console.log('Document data:', list);
-
+                console.log('Document data:', list);
                 resolve(list)
             }
           })();
@@ -231,23 +231,20 @@ function initiateParams(airData,forestData,groundwater){
 
   //forest
   obj["openForest"] = parseInt(forestData.of)
-  obj["noForest"] =parseInt(forestData.nf);
-  obj["actualForest"]=parseInt(forestData.af);
   obj["totalArea"] = parseInt(forestData.geo)
   obj["forestDensity"] = (obj["openForest"]/obj["totalArea"])*100
+  var aqi = airData.aqi
   obj["normalizedScore"] = 1000- (aqi/obj["forestDensity"])
-  obj["recommendedTarget"] = 0
+  obj["recommendedTarget"] = 0;
+  obj["noForest"] =parseInt(forestData.nf);
+  obj["actualForest"]=parseInt(forestData.af);
+
   if(obj["normalizedScore"] >500){
     obj["recommendedTarget"] = 4
   }else{
-    obj["recommendedTarget"] = Math.ceil((parseInt((1000-obj["normalizedScore"])/100)))
+    obj["recommendedTarget"] = Math.ceil((((1000-obj["normalizedScore"])/100).toDouble()))
   }
-  var aqi = airData.aqi
-
   //groundwater
-  
-
-  console.log(groundwater)
   obj["groundWaterData"] = groundwater
 
   console.log(obj["recommendedTarget"])
@@ -318,5 +315,5 @@ app.get("/system/reboot", (req, res)=>{
 
 
 // start the server listening for requests
-server.listen(process.env.PORT || 3000, 
+server.listen(process.env.PORT || 3004, 
 	() => console.log("Server is running..."));
