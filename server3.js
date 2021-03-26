@@ -53,11 +53,6 @@ app.use(express.static("public"))
 const server = http.Server(app);
 
 
-var addressData = undefined
-var airData = undefined
-var forestData = undefined
-
-
 console.log("This is pid " + process.pid);
 
 
@@ -214,21 +209,42 @@ function fetchGroundWaterData(state,district){
 
 function initiateParams(airData,forestData,groundwater){
 
+
   var obj = new Map()
+
+  //forest
   obj["openForest"] = parseInt(forestData.of)
-  obj["totalArea"] = parseInt(forestData.geo)
-  obj["forestDensity"] = (obj["openForest"]/obj["totalArea"])*100
-  var aqi = airData.aqi
-  obj["normalizedScore"] = 1000- (aqi/obj["forestDensity"])
-  obj["recommendedTarget"] = 0;
   obj["noForest"] =parseInt(forestData.nf);
   obj["actualForest"]=parseInt(forestData.af);
-
+  obj["totalArea"] = parseInt(forestData.geo)
+  obj["forestDensity"] = (obj["openForest"]/obj["totalArea"])*100
+  obj["normalizedScore"] = 1000- (aqi/obj["forestDensity"])
+  obj["recommendedTarget"] = 0;
   if(obj["normalizedScore"] >500){
     obj["recommendedTarget"] = 4
   }else{
     obj["recommendedTarget"] = Math.ceil((((1000-obj["normalizedScore"])/100).toDouble()))
   }
+  var aqi = airData.aqi
+
+  //groundwater
+  
+  var list = [
+        groundwater.annual_allocation_domestic_2025.toString(),
+        groundwater.annual_extractable.toString(),
+        groundwater.annual_extraction.toString(),
+        groundwater.annual_extraction_domestic_industrial_use.toString(),
+        groundwater.annual_extraction_irrigation.toString(),
+        groundwater.annual_recharge.toString(),
+        groundwater.future_availability.toString(),
+        groundwater.recharge_other_monsoon.toString(),
+        groundwater.recharge_other_non_monsoon.toString(),
+        groundwater.recharge_rainfall_monsoon.toString(),
+        groundwater.recharge_rainfall_non_monsoon.toString(),
+        groundwater.stage.toString(),
+        groundwater.total_natural_discharges.toString()
+  ]
+  obj["groundWaterData"] = list
 
   console.log(obj["recommendedTarget"])
   console.log(obj["normalizedScore"])
