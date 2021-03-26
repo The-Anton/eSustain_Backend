@@ -270,6 +270,7 @@ function initiateParams(latitude, longitude, addressData,airData,forestData,grou
     'city':addressData.state_district.toString(),
     'state':addressData.state.toString(),
     'apistatus':true,
+    'groundWaterData':obj["groundWaterData"],
     'country':addressData.country.toString(),
     updated:true
   }
