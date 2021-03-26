@@ -84,7 +84,7 @@ async function createUserData(uid,latitude,longitude,res){
         var city = addressData.state_district.toLowerCase()
         var forestData = await fetchForestData(state)
         var groundwaterData = await fetchGroundWaterData(state,city)
-        var finalData = initiateParams(airData,forestData,groundwaterData)
+        var finalData = initiateParams(latitude,longitude, addressData,airData,forestData,groundwaterData)
         await writeNewUserFirebase(uid,finalData)
         res.send(finalData)
         restartInstance()
@@ -224,7 +224,7 @@ function fetchGroundWaterData(state,district){
 }
 
 
-function initiateParams(airData,forestData,groundwater){
+function initiateParams(latitude, longitude, addressData,airData,forestData,groundwater){
 
 
   var obj = new Map()
@@ -249,8 +249,32 @@ function initiateParams(airData,forestData,groundwater){
 
   console.log(obj["recommendedTarget"])
   console.log(obj["normalizedScore"])
+  var locationObj = {'0':latitude.toString(), '1':longitude.toString()}
 
-  return obj
+  var object = {
+    'normalizedScore':obj["normalizedScore"],
+    'aqi':airData.aqi,
+    'co':airData.co,
+    'no2':airData.no2,
+    'o3':airData.o3,
+    'location':locationObj,
+    'pm10':airData.pm10,
+    'pm25':airData.pm25,
+    'so2':airData.so2,
+    'recommendedTarget' :obj["recommendedTarget"],
+    'forestDensity':obj["forestDensity"],
+    'totalArea':obj["totalArea"],
+    'noForest':obj["noForest"],
+    'openForest':obj["openForest"],
+    'actualForest':obj["actualForest"],
+    'city':addressData.state_district.toString(),
+    'state':addressData.state.toString(),
+    'apistatus':true,
+    'country':addressData.country.toString(),
+    updated:true
+  }
+  console.log(object)
+  return object
 
 }
 
@@ -315,5 +339,5 @@ app.get("/system/reboot", (req, res)=>{
 
 
 // start the server listening for requests
-server.listen(process.env.PORT || 3004, 
+server.listen(process.env.PORT || 3006, 
 	() => console.log("Server is running..."));
