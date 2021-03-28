@@ -234,7 +234,7 @@ function initiateParams(latitude, longitude, addressData,airData,forestData,grou
   obj["totalArea"] = parseInt(forestData.geo)
   obj["forestDensity"] = (obj["openForest"]/obj["totalArea"])*100
   var aqi = airData.aqi
-  obj["normalizedScore"] = 1000- (aqi/obj["forestDensity"])
+  obj["normalizedScore"] = 1000 - ((aqi*groundwater[11])/(obj["forestDensity"]*10))
   obj["recommendedTarget"] = 0;
   obj["noForest"] =parseInt(forestData.nf);
   obj["actualForest"]=parseInt(forestData.af);
