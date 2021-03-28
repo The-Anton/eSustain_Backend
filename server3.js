@@ -82,7 +82,7 @@ async function createUserData(uid,latitude,longitude,res){
         if(addressData.country != "India"){
 
           var temp = nullResponse
-          temp["status"] = true
+          temp["apistatus"] = true
           temp["country"] = "invalid"
           res.send(temp)
           restartInstance()
