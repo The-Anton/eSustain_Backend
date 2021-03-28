@@ -213,8 +213,10 @@ function fetchGroundWaterData(state,district){
                   doc.data().stage.toString(),
                   doc.data().total_natural_discharges.toString()
             ]
+
+            var result = {"list":list,"stage":doc.data().stage}
                 console.log('Document data:', list);
-                resolve(list)
+                resolve(result)
             }
           })();
          
@@ -234,18 +236,19 @@ function initiateParams(latitude, longitude, addressData,airData,forestData,grou
   obj["totalArea"] = parseInt(forestData.geo)
   obj["forestDensity"] = (obj["openForest"]/obj["totalArea"])*100
   var aqi = airData.aqi
-  obj["normalizedScore"] = 1000 - ((aqi*groundwater[11])/(obj["forestDensity"]*10))
+  obj["normalizedScore"] = 1000 - ((aqi*groundwater.stage))/(obj["forestDensity"]*10)
   obj["recommendedTarget"] = 0;
   obj["noForest"] =parseInt(forestData.nf);
   obj["actualForest"]=parseInt(forestData.af);
+  console.log(obj["normalizedScore"])
 
   if(obj["normalizedScore"] >500){
     obj["recommendedTarget"] = 4
   }else{
-    obj["recommendedTarget"] = Math.ceil((((1000-obj["normalizedScore"])/100).toDouble()))
+    obj["recommendedTarget"] = Math.ceil(((1000-obj["normalizedScore"])/100))
   }
   //groundwater
-  obj["groundWaterData"] = groundwater
+  obj["groundWaterData"] = groundwater.list
 
   console.log(obj["recommendedTarget"])
   console.log(obj["normalizedScore"])
@@ -340,5 +343,5 @@ app.get("/system/reboot", (req, res)=>{
 
 
 // start the server listening for requests
-server.listen(process.env.PORT || 3006, 
+server.listen(process.env.PORT || 3003, 
 	() => console.log("Server is running..."));
