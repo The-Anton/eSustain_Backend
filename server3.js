@@ -84,7 +84,7 @@ async function createUserData(uid,latitude,longitude,res){
           var temp = nullResponse
           temp["status"] = true
           temp["country"] = "invalid"
-          res.send(finalData)
+          res.send(temp)
           restartInstance()
         }
         var airData = await fetchAirData(latitude,longitude)
