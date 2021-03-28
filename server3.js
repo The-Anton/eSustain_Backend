@@ -343,5 +343,5 @@ app.get("/system/reboot", (req, res)=>{
 
 
 // start the server listening for requests
-server.listen(process.env.PORT || 3003, 
+server.listen(process.env.PORT || 3000, 
 	() => console.log("Server is running..."));
