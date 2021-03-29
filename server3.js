@@ -158,9 +158,14 @@ function fetchForestData(state){
       console.log(forestObject)
       resolve(forestObject)
     }, function (errorObject) {
+      var forestObject = {"geo":0,"nf":0,"af":0,"of":0}
       console.log("The read failed: " + errorObject.code);
-      reject(errorObject)
+      resolve(forestObject)
     });
+
+    if(0){
+      reject("error occoured")
+    }
   })
   
 
@@ -202,8 +207,24 @@ function fetchGroundWaterData(state,district){
             doc =  await cityRef.get();
             if (!doc.exists) {
                 console.error('No ground water document exsist!');
-                
-                reject('No ground water document exsist!')
+                var list = [
+                  'Not Available',
+                  'Not Available',
+                  'Not Available',
+                  'Not Available',
+                  'Not Available',
+                  'Not Available',
+                  'Not Available',
+                  'Not Available',
+                  'Not Available',
+                  'Not Available',
+                  'Not Available',
+                  'Not Available',
+                  'Not Available'
+              ]
+              var result = {"list":list,"stage":50}
+                console.log('Document data:', list);
+                resolve(result)
             } else {
                 var list = [
                   
@@ -226,6 +247,10 @@ function fetchGroundWaterData(state,district){
                 console.log('Document data:', list);
                 resolve(result)
             }
+
+            if(0){
+              reject("error occoured")
+            }
           })();
          
     })
@@ -238,16 +263,41 @@ function initiateParams(latitude, longitude, addressData,airData,forestData,grou
 
 
   var obj = new Map()
+  var aqi = airData.aqi
+  obj["recommendedTarget"] = 0;
 
   //forest
-  obj["openForest"] = parseInt(forestData.of)
-  obj["totalArea"] = parseInt(forestData.geo)
-  obj["forestDensity"] = (obj["openForest"]/obj["totalArea"])*100
-  var aqi = airData.aqi
-  obj["normalizedScore"] = 1000 - ((aqi*groundwater.stage))/(obj["forestDensity"]*10)
-  obj["recommendedTarget"] = 0;
-  obj["noForest"] =parseInt(forestData.nf);
-  obj["actualForest"]=parseInt(forestData.af);
+  if(forestData.geo == 0 && groundwater.list[1]=='Not Available'){
+    obj["openForest"] = 0
+    obj["totalArea"] = 0
+    obj["forestDensity"] = 0
+    obj["normalizedScore"] = 1000 - ((aqi*50))/(10*10)
+    obj["noForest"] =0;
+    obj["actualForest"]=0;
+  }else if(groundwater.list[1]=='Not Available' && forestData.geo > 0  ){
+    obj["openForest"] = parseInt(forestData.of)
+    obj["totalArea"] = parseInt(forestData.geo)
+    obj["forestDensity"] = (obj["openForest"]/obj["totalArea"])*100
+    obj["normalizedScore"] = 1000 - ((aqi*50))/(obj["forestDensity"]*10)
+    obj["noForest"] =parseInt(forestData.nf);
+    obj["actualForest"]=parseInt(forestData.af);
+  }else if(groundwater.list[1]!='Not Available' && forestData.geo == 0  ){
+    obj["openForest"] = 0
+    obj["totalArea"] = 0
+    obj["forestDensity"] = 0
+    obj["normalizedScore"] = 1000 - ((aqi*groundwater.stage))/(10*10)
+    obj["noForest"] =0;
+    obj["actualForest"]=0;
+  }
+  else{
+    obj["openForest"] = parseInt(forestData.of)
+    obj["totalArea"] = parseInt(forestData.geo)
+    obj["forestDensity"] = (obj["openForest"]/obj["totalArea"])*100
+    obj["normalizedScore"] = 1000 - ((aqi*groundwater.stage))/(obj["forestDensity"]*10)
+    obj["noForest"] =parseInt(forestData.nf);
+    obj["actualForest"]=parseInt(forestData.af);
+  }
+  
   console.log(obj["normalizedScore"])
 
   if(obj["normalizedScore"] >500){
