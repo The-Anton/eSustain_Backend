@@ -5,18 +5,12 @@ var admin = require('firebase-admin')
 var serviceAccount = require("./servicekey.json");
 const { resolve } = require("path");
 const e = require("express");
-// const airApiService = require("./apiService/airApiDataService.mjs");
-// const forestApiService = require("./apiService/forestApiDataService.mjs");
-// const groundWaterApiService = require("./apiService/groundWaterApiDataService.mjs");
-// const addressApiService = require("./apiService/");
-// const firebaseService = require("./apiService/firebaseService.mjs");
 const app = express()
 var revGeoCodingUrl = "http://apis.mapmyindia.com/advancedmaps/v1/pi3yb3qxy8obnmsrjwh9lm4gghx7xvwm/rev_geocode?"
 var revGeoCodingUrl2 = "https://us1.locationiq.com/v1/reverse.php?key=pk.6500b602741f3cbdb1214e8fb297041a&format=json&"
 var forestDataUrl = "https://api.data.gov.in/resource/4b573150-4b0e-4a38-9f4b-ae643de88f09?api-key=579b464db66ec23bdd00000157bc862d9f2146d84b764d388c4b7319&format=json&filters[states_uts]="
 var airDataUrl = "https://api.weatherbit.io/v2.0/current/airquality?key=fe3cc9eeea474df0af9999424550bdee&"
 
-var isLoading = false
 
 var nullResponse = {
   'normalizedScore':0.0,
@@ -78,20 +72,21 @@ app.get("/newuser", function (req, res) {
 async function createUserData(uid,latitude,longitude,res){
 
     try{
-        var addressData = await fetchAddress(latitude,longitude)
-        if(addressData.country != "India"){
 
-          var temp = nullResponse
-          temp["apistatus"] = true
-          temp["country"] = "invalid"
-          res.send(temp)
-          restartInstance()
-        }
-        var airData = await fetchAirData(latitude,longitude)
+        var p1 = await firstParallel(latitude,longitude,res)
+
+        var addressData = p1[0]
+        var airData = p1[1]
+
+        console.log(addressData)
+        console.log(airData)
+        
         var state = addressData.state.toLowerCase()
         var city = addressData.state_district.toLowerCase()
-        var forestData = await fetchForestData(state)
-        var groundwaterData = await fetchGroundWaterData(state,city)
+        var p2 = await secondParallel(state,city)
+        
+        var forestData = p2[0]
+        var groundwaterData = p2[1]
         var finalData = initiateParams(latitude,longitude, addressData,airData,forestData,groundwaterData)
         await writeNewUserFirebase(uid,finalData)
         res.send(finalData)
@@ -106,10 +101,9 @@ async function createUserData(uid,latitude,longitude,res){
 }
 
 
+async function firstParallel(latitude,longitude,mainres){
 
-function fetchAddress(latitude,longitude){
-
-  return new Promise((resolve,reject) => {
+    const p1 = new Promise((resolve,reject) => {
 
         revGeoCodingUrl2 += "lat="+latitude + "&lon=" + longitude
 
@@ -120,49 +114,25 @@ function fetchAddress(latitude,longitude){
                 reject(err)
             }else{
                 var address = body.address
-                console.error(address);
+                if(address.country != "India"){
+
+                    var temp = nullResponse
+                    temp["apistatus"] = true
+                    temp["country"] = "invalid"
+                    mainres.send(temp)
+                    restartInstance()
+                }
                 resolve(address)
             }
             
         })
   
   })
-}
-
-
-function fetchForestData(state){
-
-
-  return new Promise((resolve,reject) =>{
-    state = state.toLowerCase()
-    var ref = database.ref(`stateForestData/${state}`);
-  
-    // Attach an asynchronous callback to read the data at our posts reference
-    ref.on("value", function(snapshot) {
-      //console.log(snapshot.val().geoarea);
-      var forestObject = {"geo":snapshot.val().geoarea,"nf":snapshot.val().noforest,"af":snapshot.val().actualforestcover,"of":snapshot.val().openforest}
-      console.log(forestObject)
-      resolve(forestObject)
-    }, function (errorObject) {
-      var forestObject = {"geo":0,"nf":0,"af":0,"of":0}
-      console.log("The read failed: " + errorObject.code);
-      resolve(forestObject)
-    });
-
-    if(0){
-      reject("error occoured")
-    }
-  })
-  
 
 
 
-}
 
-
-function fetchAirData(latitude,longitude){
-
-    return new Promise((resolve, reject) => {
+    const p2 = new Promise((resolve, reject) => {
         airDataUrl+= "lat="+latitude + "&lon=" + longitude
 
         request(airDataUrl, { json: true }, (err, res, body) => {
@@ -171,20 +141,43 @@ function fetchAirData(latitude,longitude){
                 reject(err)
             }else{
                 var air = body.data[0]
-                console.log(air)
+                //console.log(air)
                 resolve(air)
             }
             
         })
     })
-  
 
+
+    return await Promise.all([p1,p2])
+    
 }
 
+async function secondParallel(state,district){
 
-function fetchGroundWaterData(state,district){
+    const c1 = new Promise((resolve,reject) =>{
+        state = state.toLowerCase()
+        var ref = database.ref(`stateForestData/${state}`);
+      
+        // Attach an asynchronous callback to read the data at our posts reference
+        ref.on("value", function(snapshot) {
+          //console.log(snapshot.val().geoarea);
+          var forestObject = {"geo":snapshot.val().geoarea,"nf":snapshot.val().noforest,"af":snapshot.val().actualforestcover,"of":snapshot.val().openforest}
+          console.log(forestObject)
+          resolve(forestObject)
+        }, function (errorObject) {
+          var forestObject = {"geo":0,"nf":0,"af":0,"of":0}
+          console.log("The read failed: " + errorObject.code);
+          resolve(forestObject)
+        });
+    
+        if(0){
+          reject("error occoured")
+        }
+      })
+      
 
-     return new Promise((resolve,reject)=>{
+       const c2 = new Promise((resolve,reject)=>{
         state = state.toLowerCase()
         district = district.toLowerCase()
         const cityRef = dbfirestore.collection('groundWaterData').doc(`/india/${state}/${district}`);
@@ -240,9 +233,13 @@ function fetchGroundWaterData(state,district){
           })();
          
     })
-  
 
+
+    return await Promise.all([c1,c2])
+    
 }
+
+
 
 
 function initiateParams(latitude, longitude, addressData,airData,forestData,groundwater){
