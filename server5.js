@@ -50,8 +50,6 @@ const server = http.Server(app);
 console.log("This is pid " + process.pid);
 
 
-
-
 app.get("/newuser", function (req, res) {
 
   const uid = req.param("uid")
@@ -62,11 +60,6 @@ app.get("/newuser", function (req, res) {
    
 
 })
-
-
-
-
-
 
 
 async function createUserData(uid,latitude,longitude,res){
@@ -366,6 +359,14 @@ function restartInstance(){
   process.exit();
 };
 
+
+
+app.get("/keepalive", function (req, res) {
+
+    console.log("I'm alive")
+    res.send("I'm alive")
+     
+  })
 
 app.get("/system/reboot", (req, res)=>{
   setTimeout(function () {
