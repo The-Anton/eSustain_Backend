@@ -6,10 +6,8 @@ var serviceAccount = require("./servicekey.json");
 const { resolve } = require("path");
 const e = require("express");
 const app = express()
-var revGeoCodingUrl = "http://apis.mapmyindia.com/advancedmaps/v1/pi3yb3qxy8obnmsrjwh9lm4gghx7xvwm/rev_geocode?"
-var revGeoCodingUrl2 = "https://us1.locationiq.com/v1/reverse.php?key=pk.6500b602741f3cbdb1214e8fb297041a&format=json&"
-var forestDataUrl = "https://api.data.gov.in/resource/4b573150-4b0e-4a38-9f4b-ae643de88f09?api-key=579b464db66ec23bdd00000157bc862d9f2146d84b764d388c4b7319&format=json&filters[states_uts]="
-var airDataUrl = "https://api.weatherbit.io/v2.0/current/airquality?key=fe3cc9eeea474df0af9999424550bdee&"
+var revGeoCodingUrl = "https://us1.locationiq.com/v1/reverse.php?key=pk.6500b602741f3cbdb1214e8fb297041a&format=json&"
+var airDataUrl = "https://api.weatherbit.io/v2.0/current/airquality?key=c046a9b2852c4831bce898a3d0065d14&"
 
 
 var nullResponse = {
@@ -54,7 +52,6 @@ app.get("/newuser", function (req, res) {
   
   createUserData(uid,latitude,longitude,res)
    
-
 })
 
 
@@ -63,17 +60,26 @@ async function createUserData(uid,latitude,longitude,res){
     try{
 
         var p1 = await firstParallel(latitude,longitude,res)
-
+    
         var addressData = p1[0]
         var airData = p1[1]
         var state = addressData.state.toLowerCase()
-        var city = addressData.state_district.toLowerCase()
+        var district
+        if(addressData.state_district!= undefined){
+            district = parseDistrict(addressData.state_district.toLowerCase())
+
+        }else{
+            district = parseDistrict(addressData.city.toLowerCase())
+
+        }
+        var city = parseDistrict(district)
         var p2 = await secondParallel(state,city)
         
         var forestData = p2[0]
         var groundwaterData = p2[1]
-        var finalData = initiateParams(latitude,longitude, addressData,airData,forestData,groundwaterData)
+        var finalData = initiateParams(latitude,longitude,district,addressData,airData,forestData,groundwaterData)
         await writeNewUserFirebase(uid,finalData)
+
         res.send(finalData)
         restartInstance()
     }
@@ -90,11 +96,12 @@ async function firstParallel(latitude,longitude,mainres){
 
     const p1 = new Promise((resolve,reject) => {
 
-        revGeoCodingUrl2 += "lat="+latitude + "&lon=" + longitude
+        revGeoCodingUrl += "lat="+latitude + "&lon=" + longitude
 
-        request(revGeoCodingUrl2, { json: true }, (err, res, body) => {
+        request(revGeoCodingUrl, { json: true }, (err, res, body) => {
         
             if (err) {
+                console.log(err)
                 reject(err)
             }else{
                 var address = body.address
@@ -121,6 +128,7 @@ async function firstParallel(latitude,longitude,mainres){
 
         request(airDataUrl, { json: true }, (err, res, body) => {
             if (err) {
+                console.log(err)
                 reject(err)
             }else{
                 var air = body.data[0]
@@ -164,27 +172,11 @@ async function secondParallel(state,district){
            (async () => {
             doc =  await cityRef.get();
             if (!doc.exists) {
-                var list = [
-                  '0',
-                  '0',
-                  '0',
-                  '0',
-                  '0',
-                  '0',
-                  '0',
-                  '0',
-                  '0',
-                  '0',
-                  '0',
-                  '0',
-                  '0'
-              ]
+                var list = ['0','0','0','0','0','0','0','0','0','0','0','0','0']
               var result = {"list":list,"stage":50}
                 resolve(result)
             } else {
-                var list = [
-                  
-                doc.data().annual_allocation_domestic_2025.toString(),
+                var list = [ doc.data().annual_allocation_domestic_2025.toString(),
                   doc.data().annual_extractable.toString(),
                   doc.data().annual_extraction.toString(),
                   doc.data().annual_extraction_domestic_industrial_use.toString(),
@@ -196,8 +188,7 @@ async function secondParallel(state,district){
                   doc.data().recharge_rainfall_monsoon.toString(),
                   doc.data().recharge_rainfall_non_monsoon.toString(),
                   doc.data().stage.toString(),
-                  doc.data().total_natural_discharges.toString()
-            ]
+                  doc.data().total_natural_discharges.toString() ]
 
             var result = {"list":list,"stage":doc.data().stage}
                 resolve(result)
@@ -218,80 +209,59 @@ async function secondParallel(state,district){
 
 
 
-function initiateParams(latitude, longitude, addressData,airData,forestData,groundwater){
+function initiateParams(latitude, longitude,district, addressData,airData,forestData,groundwater){
 
 
-  var obj = new Map()
   var aqi = airData.aqi
-  obj["recommendedTarget"] = 0;
-
-  //forest
-  if(forestData.geo == 0 && groundwater.list[1]=='0'){
-    obj["openForest"] = 0
-    obj["totalArea"] = 0
-    obj["forestDensity"] = 0
-    obj["normalizedScore"] = 1000 - ((aqi*50))/(10*10)
-    obj["noForest"] =0;
-    obj["actualForest"]=0;
-  }else if(groundwater.list[1]=='0' && forestData.geo > 0  ){
-    obj["openForest"] = parseInt(forestData.of)
-    obj["totalArea"] = parseInt(forestData.geo)
-    obj["forestDensity"] = (obj["openForest"]/obj["totalArea"])*100
-    obj["normalizedScore"] = 1000 - ((aqi*50))/(obj["forestDensity"]*10)
-    obj["noForest"] =parseInt(forestData.nf);
-    obj["actualForest"]=parseInt(forestData.af);
-  }else if(groundwater.list[1]!='0' && forestData.geo == 0  ){
-    obj["openForest"] = 0
-    obj["totalArea"] = 0
-    obj["forestDensity"] = 0
-    obj["normalizedScore"] = 1000 - ((aqi*groundwater.stage))/(10*10)
-    obj["noForest"] =0;
-    obj["actualForest"]=0;
-  }
-  else{
-    obj["openForest"] = parseInt(forestData.of)
-    obj["totalArea"] = parseInt(forestData.geo)
-    obj["forestDensity"] = (obj["openForest"]/obj["totalArea"])*100
-    obj["normalizedScore"] = 1000 - ((aqi*groundwater.stage))/(obj["forestDensity"]*10)
-    obj["noForest"] =parseInt(forestData.nf);
-    obj["actualForest"]=parseInt(forestData.af);
-  }
+  var openForest = 0
+  var totalArea = 0
+  var noForest = 0
+  var actualForest = 0
+  var forestDensity = 0
+  var normalizedScore = 1000 - ((aqi*50))/(10*10)
   
+ if(groundwater.list[1]=='0' && forestData.geo > 0  ){
 
-  if(obj["normalizedScore"] >500){
-    obj["recommendedTarget"] = 4
+    openForest = parseInt(forestData.of)
+    totalArea = parseInt(forestData.geo)
+    forestDensity = (openForest/totalArea)*100
+    normalizedScore = 1000 - ((aqi*50))/(forestDensity*10)
+    noForest = parseInt(forestData.nf);
+    actualForest = parseInt(forestData.af);
+
+  }else if(groundwater.list[1]!='0' && forestData.geo == 0  ){
+
+    normalizedScore = 1000 - ((aqi*groundwater.stage))/(10*10)
+    
   }else{
-    obj["recommendedTarget"] = Math.ceil(((1000-obj["normalizedScore"])/100))
+
+    openForest = parseInt(forestData.of)
+    totalArea = parseInt(forestData.geo)
+    forestDensity = (openForest/totalArea)*100
+    normalizedScore = 1000 - ((aqi*groundwater.stage))/(forestDensity*10)
+    noForest = parseInt(forestData.nf)
+    actualForest = parseInt(forestData.af)
+
   }
-  //groundwater
-  obj["groundWaterData"] = groundwater.list
+ 
+
+  if(normalizedScore >500){
+    recommendedTarget = 4
+  }else{
+    recommendedTarget = Math.ceil(((1000-normalizedScore)/100))
+  }
+
+  var groundWaterData = groundwater.list
 
   var locationObj = {'0':latitude.toString(), '1':longitude.toString()}
 
-  var object = {
-    'normalizedScore':obj["normalizedScore"],
-    'aqi':airData.aqi,
-    'co':airData.co,
-    'no2':airData.no2,
-    'o3':airData.o3,
-    'location':locationObj,
-    'pm10':airData.pm10,
-    'pm25':airData.pm25,
-    'so2':airData.so2,
-    'recommendedTarget' :obj["recommendedTarget"],
-    'forestDensity':obj["forestDensity"],
-    'totalArea':obj["totalArea"],
-    'noForest':obj["noForest"],
-    'openForest':obj["openForest"],
-    'actualForest':obj["actualForest"],
-    'city':addressData.state_district.toString(),
-    'state':addressData.state.toString(),
-    'apistatus':true,
-    'groundWaterData':obj["groundWaterData"],
-    'country':addressData.country.toString(),
+  return {
+    'normalizedScore':normalizedScore,'aqi':airData.aqi,'co':airData.co,'no2':airData.no2,
+    'o3':airData.o3,'location':locationObj,'pm10':airData.pm10,'pm25':airData.pm25,'so2':airData.so2,'recommendedTarget' :recommendedTarget,
+    'forestDensity':forestDensity,'totalArea':totalArea,'noForest':noForest,'openForest':openForest,'actualForest':actualForest,
+    'city':district,'state':addressData.state.toString(),'apistatus':true,'groundWaterData':groundWaterData,'country':addressData.country.toString(),
     updated:true
   }
-  return object
 
 }
 
@@ -303,6 +273,7 @@ function writeNewUserFirebase(uid,object){
         path = path.toString()
         database.ref(path).update(object, function(error) {
         console.log("Uid: " + uid)
+            
       
           if (error) {
             // The write failed...
@@ -321,6 +292,33 @@ function writeNewUserFirebase(uid,object){
     })
   
 
+}
+
+function updateKeysCount(key,tag){
+
+}
+
+
+
+function parseDistrict(district){
+    var commanLetters = ["the", "district"]
+    var list = district.trim().split(" ")
+
+    if(list.length == 1){
+        return list[0]
+    }else{
+        for(var i=0; i<list.length; i++){
+            if(commanLetters.includes(list[i])){
+                list.splice(i,1)
+            }
+        }
+        var s =""
+        for(var i=0; i<list.length; i++){
+            s =s + " " + list[i]
+        }
+        console.log(s)
+        return s.trim()
+    }
 }
 
 
