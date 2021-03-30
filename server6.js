@@ -46,10 +46,6 @@ const dbfirestore = admin.firestore();
 app.use(express.static("public"))
 const server = http.Server(app);
 
-
-console.log("This is pid " + process.pid);
-
-
 app.get("/newuser", function (req, res) {
 
   const uid = req.param("uid")
@@ -70,10 +66,6 @@ async function createUserData(uid,latitude,longitude,res){
 
         var addressData = p1[0]
         var airData = p1[1]
-
-        console.log(addressData)
-        console.log(airData)
-        
         var state = addressData.state.toLowerCase()
         var city = addressData.state_district.toLowerCase()
         var p2 = await secondParallel(state,city)
@@ -103,7 +95,6 @@ async function firstParallel(latitude,longitude,mainres){
         request(revGeoCodingUrl2, { json: true }, (err, res, body) => {
         
             if (err) {
-                console.error('fetch failed:', err);
                 reject(err)
             }else{
                 var address = body.address
@@ -130,7 +121,6 @@ async function firstParallel(latitude,longitude,mainres){
 
         request(airDataUrl, { json: true }, (err, res, body) => {
             if (err) {
-                console.error('fetch failed:', err)
                 reject(err)
             }else{
                 var air = body.data[0]
@@ -152,15 +142,11 @@ async function secondParallel(state,district){
         state = state.toLowerCase()
         var ref = database.ref(`stateForestData/${state}`);
       
-        // Attach an asynchronous callback to read the data at our posts reference
         ref.on("value", function(snapshot) {
-          //console.log(snapshot.val().geoarea);
           var forestObject = {"geo":snapshot.val().geoarea,"nf":snapshot.val().noforest,"af":snapshot.val().actualforestcover,"of":snapshot.val().openforest}
-          console.log(forestObject)
           resolve(forestObject)
         }, function (errorObject) {
           var forestObject = {"geo":0,"nf":0,"af":0,"of":0}
-          console.log("The read failed: " + errorObject.code);
           resolve(forestObject)
         });
     
@@ -178,7 +164,6 @@ async function secondParallel(state,district){
            (async () => {
             doc =  await cityRef.get();
             if (!doc.exists) {
-                console.error('No ground water document exsist!');
                 var list = [
                   '0',
                   '0',
@@ -195,7 +180,6 @@ async function secondParallel(state,district){
                   '0'
               ]
               var result = {"list":list,"stage":50}
-                console.log('Document data:', list);
                 resolve(result)
             } else {
                 var list = [
@@ -216,7 +200,6 @@ async function secondParallel(state,district){
             ]
 
             var result = {"list":list,"stage":doc.data().stage}
-                console.log('Document data:', list);
                 resolve(result)
             }
 
@@ -274,7 +257,6 @@ function initiateParams(latitude, longitude, addressData,airData,forestData,grou
     obj["actualForest"]=parseInt(forestData.af);
   }
   
-  console.log(obj["normalizedScore"])
 
   if(obj["normalizedScore"] >500){
     obj["recommendedTarget"] = 4
@@ -284,8 +266,6 @@ function initiateParams(latitude, longitude, addressData,airData,forestData,grou
   //groundwater
   obj["groundWaterData"] = groundwater.list
 
-  console.log(obj["recommendedTarget"])
-  console.log(obj["normalizedScore"])
   var locationObj = {'0':latitude.toString(), '1':longitude.toString()}
 
   var object = {
@@ -311,7 +291,6 @@ function initiateParams(latitude, longitude, addressData,airData,forestData,grou
     'country':addressData.country.toString(),
     updated:true
   }
-  console.log(object)
   return object
 
 }
@@ -327,7 +306,7 @@ function writeNewUserFirebase(uid,object){
       
           if (error) {
             // The write failed...
-            console.error('Status: firebse write failed =>', err);
+            console.error('Status: firebase write failed =>', err);
             isLoading = false
             reject(error)
             
