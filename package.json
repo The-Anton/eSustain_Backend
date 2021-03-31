@@ -2,7 +2,7 @@
   "name": "esustain",
   "version": "1.0.0",
   "description": "a really cool app",
-  "main": "server6.js",
+  "main": "server.js",
   "scripts": {
     "start": "pm2-runtime start ecosystem.config.js --env production"
   },
@@ -17,6 +17,7 @@
     "firebase-auth": "^0.1.2",
     "http2": "^3.3.7",
     "pm2": "^4.5.5",
+    "redis": "^3.0.2",
     "request": "^2.81.0",
     "url": "^0.11.0"
   }
